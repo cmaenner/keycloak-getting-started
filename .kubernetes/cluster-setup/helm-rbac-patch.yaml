@@ -1,0 +1,19 @@
+---
+# .kubernetes/cluster-setup/helm-rbac-patch.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: crossplane:provider:provider-helm-9abd50db4cc4:system
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete

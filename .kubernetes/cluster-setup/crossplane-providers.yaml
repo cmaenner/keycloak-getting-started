@@ -1,5 +1,5 @@
 ---
-# .kubernetes/cluster-setup/crossplane-config.yaml
+# .kubernetes/cluster-setup/crossplane-providers.yaml
 apiVersion: pkg.crossplane.io/v1
 kind: Configuration
 metadata:
@@ -20,19 +20,3 @@ metadata:
   name: provider-kubernetes
 spec:
   package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.18.0
----
-apiVersion: helm.crossplane.io/v1beta1
-kind: ProviderConfig
-metadata:
-  name: default
-spec:
-  credentials:
-    source: InjectedIdentity
----
-apiVersion: kubernetes.crossplane.io/v1alpha1
-kind: ProviderConfig
-metadata:
-  name: default
-spec:
-  credentials:
-    source: InjectedIdentity

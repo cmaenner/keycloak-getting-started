@@ -1,7 +1,7 @@
 # Keycloak Development with Kind, Crossplane & Docusaurus
 # Makefile for automation and deployment
 
-.PHONY: help install-tools create-configs create-cluster create-cluster-simple delete-cluster cluster-info install-ingress install-crossplane configure-crossplane uninstall-crossplane test-crossplane create-namespace deploy-postgres deploy-keycloak setup-hosts port-forward reset-keycloak status logs describe-keycloak troubleshoot versions init-docusaurus docusaurus-dev docusaurus-build docusaurus-serve setup-github-pages cleanup-keycloak cleanup-configs cleanup-all quick-setup full-demo presentation-ready test-keycloak check-runtime
+.PHONY: help install-tools create-configs create-cluster create-cluster-simple delete-cluster cluster-info install-ingress install-crossplane configure-crossplane uninstall-crossplane test-crossplane create-namespace deploy-postgres deploy-keycloak setup-hosts port-forward reset-keycloak status logs describe-keycloak troubleshoot versions init-docusaurus docusaurus-dev docusaurus-build docusaurus-serve setup-github-pages cleanup-keycloak cleanup-configs cleanup-all quick-setup full-demo presentation-ready test-keycloak check-runtime setup-helm-rbac update-helm-rbac
 
 # Default target
 help:
@@ -44,6 +44,8 @@ help:
 	@echo "  presentation-ready     - Everything ready for presentation"
 	@echo "  test-keycloak          - Test Keycloak accessibility"
 	@echo "  check-runtime          - Check Docker or Rancher Desktop status"
+	@echo "  setup-helm-rbac        - Setup comprehensive RBAC for Helm provider"
+	@echo "  update-helm-rbac       - Update RBAC for new Helm provider service accounts"
 
 # Variables
 CLUSTER_NAME := keycloak-demo
@@ -111,7 +113,7 @@ install-ingress:
 	@echo "Installing NGINX Ingress Controller..."
 	@kubectl apply -k .kubernetes/cluster-setup/ingress-nginx/
 	@echo "Waiting for ingress controller to be ready..."
-	@kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=300s
+	@kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=300s || (echo "Waiting for pod to be created..." && sleep 10 && kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=300s)
 	@echo "Ingress controller installed successfully!"
 
 # Install Crossplane
@@ -119,7 +121,7 @@ install-crossplane:
 	@echo "Installing Crossplane..."
 	@helm repo add crossplane-stable https://charts.crossplane.io/stable
 	@helm repo update
-	@helm install crossplane crossplane-stable/crossplane --namespace crossplane-system --create-namespace
+	@helm install crossplane --namespace crossplane-system --create-namespace crossplane-stable/crossplane
 	@echo "Waiting for Crossplane to be ready..."
 	@kubectl wait --for=condition=ready pod --selector=app.kubernetes.io/name=crossplane --namespace crossplane-system --timeout=300s
 	@echo "Crossplane installed successfully!"
@@ -127,10 +129,21 @@ install-crossplane:
 # Configure Crossplane providers
 configure-crossplane:
 	@echo "Configuring Crossplane providers..."
-	@kubectl apply -f .kubernetes/cluster-setup/crossplane-config.yaml
-	@echo "Waiting for providers to be ready..."
+	@echo "Installing providers..."
+	@kubectl apply -f .kubernetes/cluster-setup/crossplane-providers.yaml
+	@echo "Waiting for Helm ProviderConfig CRD..."
+	@timeout 120 bash -c 'until kubectl get crd providerconfigs.helm.crossplane.io 2>/dev/null; do sleep 2; done'
+	@echo "Waiting for Kubernetes ProviderConfig CRD..."
+	@timeout 120 bash -c 'until kubectl get crd providerconfigs.kubernetes.crossplane.io 2>/dev/null; do sleep 2; done'
+	@echo "Waiting for providers to be healthy..."
 	@kubectl wait --for=condition=healthy provider.pkg.crossplane.io/provider-helm --timeout=300s
 	@kubectl wait --for=condition=healthy provider.pkg.crossplane.io/provider-kubernetes --timeout=300s
+	@echo "Applying ProviderConfig..."
+	@kubectl apply -f .kubernetes/cluster-setup/crossplane-providerconfigs.yaml
+	@echo "Setting up comprehensive RBAC for Helm provider..."
+	@kubectl apply -f .kubernetes/cluster-setup/helm-provider-static-rbac.yaml
+	@echo "Updating RBAC for current Helm provider service accounts..."
+	@./scripts/update-helm-rbac.sh
 	@echo "Crossplane providers configured successfully!"
 
 # Uninstall Crossplane
@@ -379,4 +392,15 @@ check-runtime:
 		echo "Please install Docker Desktop or Rancher Desktop:"; \
 		echo "  - Docker Desktop: https://www.docker.com/products/docker-desktop/"; \
 		echo "  - Rancher Desktop: https://rancherdesktop.io/"; \
-	fi 
+	fi
+
+# Setup comprehensive RBAC for Helm provider
+setup-helm-rbac:
+	@echo "Setting up comprehensive RBAC for Helm provider..."
+	@kubectl apply -f .kubernetes/cluster-setup/helm-provider-static-rbac.yaml
+	@echo "RBAC setup completed!"
+
+# Update RBAC for new Helm provider service accounts
+update-helm-rbac:
+	@echo "Updating RBAC for Helm provider service accounts..."
+	@./scripts/update-helm-rbac.sh 

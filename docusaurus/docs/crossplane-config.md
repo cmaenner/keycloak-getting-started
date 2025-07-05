@@ -50,7 +50,7 @@ kind: Provider
 metadata:
   name: provider-helm
 spec:
-  package: xpkg.upbound.io/crossplane-contrib/provider-helm:v2.0.0
+  package: xpkg.upbound.io/crossplane-contrib/provider-helm:v0.21.0
 ---
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
