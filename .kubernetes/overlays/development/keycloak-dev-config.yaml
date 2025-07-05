@@ -1,0 +1,34 @@
+---
+# .kubernetes/overlays/development/keycloak-dev-config.yaml
+apiVersion: helm.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: keycloak-release
+  namespace: keycloak
+spec:
+  forProvider:
+    values:
+      auth:
+        adminUser: admin
+        adminPassword: admin
+      replicaCount: 1
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "250m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+      extraEnvVars:
+        - name: KEYCLOAK_LOG_LEVEL
+          value: DEBUG
+        - name: KEYCLOAK_ENABLE_STATISTICS
+          value: "true"
+      postgresql:
+        enabled: false
+      externalDatabase:
+        host: postgres
+        port: 5432
+        user: keycloak
+        password: password
+        database: keycloak

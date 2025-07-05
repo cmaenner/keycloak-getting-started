@@ -1,0 +1,48 @@
+---
+# .kubernetes/overlays/production/keycloak-prod-config.yaml
+apiVersion: helm.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: keycloak-release
+  namespace: keycloak
+spec:
+  forProvider:
+    values:
+      auth:
+        adminUser: admin
+        adminPassword: # Should be from secret in production
+          secretRef:
+            name: keycloak-admin-credentials
+            key: password
+      replicaCount: 3
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "1000m"
+        limits:
+          memory: "2Gi"
+          cpu: "2000m"
+      extraEnvVars:
+        - name: KEYCLOAK_LOG_LEVEL
+          value: INFO
+        - name: KEYCLOAK_ENABLE_STATISTICS
+          value: "false"
+      postgresql:
+        enabled: false
+      externalDatabase:
+        host: postgres-cluster.database.svc.cluster.local
+        port: 5432
+        user: keycloak
+        password:
+          secretRef:
+            name: keycloak-db-credentials
+            key: password
+        database: keycloak
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        hostname: keycloak.yourdomain.com
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        tls: true

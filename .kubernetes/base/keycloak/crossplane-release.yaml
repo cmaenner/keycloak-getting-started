@@ -1,0 +1,57 @@
+---
+# .kubernetes/base/keycloak/crossplane-release.yaml
+apiVersion: helm.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: keycloak-release
+  namespace: keycloak
+spec:
+  forProvider:
+    chart:
+      name: keycloak
+      repository: https://charts.bitnami.com/bitnami
+      version: "24.2.0"
+    namespace: keycloak
+    values:
+      auth:
+        adminUser: admin
+        adminPassword: admin
+      postgresql:
+        enabled: false
+      externalDatabase:
+        host: postgres
+        port: 5432
+        user: keycloak
+        password: password
+        database: keycloak
+      service:
+        type: ClusterIP
+        ports:
+          http: 8080
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
+      livenessProbe:
+        enabled: true
+        initialDelaySeconds: 300
+        periodSeconds: 1
+        timeoutSeconds: 5
+        failureThreshold: 3
+        successThreshold: 1
+      readinessProbe:
+        enabled: true
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 1
+        failureThreshold: 3
+        successThreshold: 1
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: false
+  providerConfigRef:
+    name: default
