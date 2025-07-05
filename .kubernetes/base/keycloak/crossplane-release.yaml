@@ -24,10 +24,32 @@ spec:
         user: keycloak
         password: password
         database: keycloak
+      extraEnvVars:
+        - name: KC_HTTP_ENABLED
+          value: "true"
+        - name: KC_HOSTNAME_STRICT
+          value: "false"
+        - name: KC_HTTPS_CERTIFICATE_FILE
+          value: "/certs/tls.crt"
+        - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+          value: "/certs/tls.key"
+      production: false
       service:
-        type: ClusterIP
+        type: NodePort
         ports:
           http: 8080
+          https: 8443
+      extraVolumeMounts:
+        - name: keycloak-tls
+          mountPath: /certs
+          readOnly: true
+      extraVolumes:
+        - name: keycloak-tls
+          secret:
+            secretName: keycloak-tls-secret
+      containerPorts:
+        http: 8080
+        https: 8443
       resources:
         requests:
           memory: "512Mi"

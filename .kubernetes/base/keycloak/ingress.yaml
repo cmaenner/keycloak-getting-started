@@ -5,14 +5,23 @@ kind: Ingress
 metadata:
   name: keycloak-ingress
   namespace: keycloak
+  labels:
+    app.kubernetes.io/component: identity-provider
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: keycloak
   annotations:
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-body-size: 1m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
     nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - keycloak.local
+      secretName: keycloak-tls-secret
   rules:
     - host: keycloak.local
       http:
@@ -23,4 +32,4 @@ spec:
               service:
                 name: keycloak-release
                 port:
-                  number: 8080
+                  number: 8443

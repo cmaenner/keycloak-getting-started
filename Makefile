@@ -1,7 +1,7 @@
 # Keycloak Development with Kind, Crossplane & Docusaurus
 # Makefile for automation and deployment
 
-.PHONY: help install-tools create-configs create-cluster create-cluster-simple delete-cluster cluster-info install-ingress install-crossplane configure-crossplane uninstall-crossplane test-crossplane create-namespace deploy-postgres deploy-keycloak setup-hosts port-forward reset-keycloak status logs describe-keycloak troubleshoot versions init-docusaurus docusaurus-dev docusaurus-build docusaurus-serve setup-github-pages cleanup-keycloak cleanup-configs cleanup-all quick-setup full-demo presentation-ready test-keycloak check-runtime setup-helm-rbac update-helm-rbac
+.PHONY: help install-tools create-configs create-cluster create-cluster-simple delete-cluster cluster-info install-ingress install-crossplane configure-crossplane uninstall-crossplane test-crossplane create-namespace deploy-postgres deploy-keycloak setup-hosts port-forward reset-keycloak status logs describe-keycloak troubleshoot versions init-docusaurus docusaurus-dev docusaurus-build docusaurus-serve setup-github-pages cleanup-keycloak cleanup-configs cleanup-all quick-setup full-demo presentation-ready test-keycloak check-runtime setup-helm-rbac update-helm-rbac deploy-crossplane-manifests kind-delete kind-create kind-recreate kind-delete-simple kind-create-simple kind-recreate-simple
 
 # Default target
 help:
@@ -46,6 +46,13 @@ help:
 	@echo "  check-runtime          - Check Docker or Rancher Desktop status"
 	@echo "  setup-helm-rbac        - Setup comprehensive RBAC for Helm provider"
 	@echo "  update-helm-rbac       - Update RBAC for new Helm provider service accounts"
+	@echo "  deploy-crossplane-manifests - Deploy Crossplane infrastructure manifests"
+	@echo "  kind-delete            - Delete Kind cluster"
+	@echo "  kind-create            - Create Kind cluster with 4 CPUs and 8GB RAM"
+	@echo "  kind-recreate          - Recreate Kind cluster with 4 CPUs and 8GB RAM"
+	@echo "  kind-delete-simple     - Delete simple Kind cluster"
+	@echo "  kind-create-simple     - Create simple Kind cluster with 4 CPUs and 8GB RAM"
+	@echo "  kind-recreate-simple    - Recreate simple Kind cluster with 4 CPUs and 8GB RAM"
 
 # Variables
 CLUSTER_NAME := keycloak-demo
@@ -135,9 +142,12 @@ configure-crossplane:
 	@timeout 120 bash -c 'until kubectl get crd providerconfigs.helm.crossplane.io 2>/dev/null; do sleep 2; done'
 	@echo "Waiting for Kubernetes ProviderConfig CRD..."
 	@timeout 120 bash -c 'until kubectl get crd providerconfigs.kubernetes.crossplane.io 2>/dev/null; do sleep 2; done'
+	@echo "Waiting for Keycloak ProviderConfig CRD..."
+	@timeout 120 bash -c 'until kubectl get crd providerconfigs.keycloak.crossplane.io 2>/dev/null; do sleep 2; done'
 	@echo "Waiting for providers to be healthy..."
 	@kubectl wait --for=condition=healthy provider.pkg.crossplane.io/provider-helm --timeout=300s
 	@kubectl wait --for=condition=healthy provider.pkg.crossplane.io/provider-kubernetes --timeout=300s
+	@kubectl wait --for=condition=healthy provider.pkg.crossplane.io/provider-keycloak --timeout=300s
 	@echo "Applying ProviderConfig..."
 	@kubectl apply -f .kubernetes/cluster-setup/crossplane-providerconfigs.yaml
 	@echo "Setting up comprehensive RBAC for Helm provider..."
@@ -177,9 +187,16 @@ deploy-postgres:
 # Deploy Keycloak
 deploy-keycloak:
 	@echo "Deploying Keycloak..."
-	@kubectl apply -k .kubernetes/base/keycloak/
-	@echo "Waiting for Keycloak to be ready..."
-	@kubectl wait --for=condition=ready pod --selector=app.kubernetes.io/name=keycloak --namespace $(NAMESPACE) --timeout=600s
+	kubectl apply -k .kubernetes/base/keycloak/
+	@echo "Waiting for Keycloak Helm release to be READY..."
+	kubectl wait --for=condition=Ready --timeout=300s release.helm.crossplane.io/keycloak-release -n keycloak
+	@echo "Waiting for Keycloak pod to be created..."
+	until kubectl get pod -n keycloak -l app.kubernetes.io/name=keycloak | grep -v NAME | grep -q keycloak-release; do \
+		echo "Keycloak pod not found yet. Waiting..."; \
+		sleep 5; \
+	done
+	@echo "Waiting for Keycloak pod to be ready..."
+	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=keycloak -n keycloak --timeout=300s
 	@echo "Keycloak deployed successfully!"
 
 # Setup hosts file
@@ -362,7 +379,7 @@ quick-setup: create-cluster-simple install-ingress install-crossplane configure-
 	@echo "Quick setup completed!"
 
 # Full demo
-full-demo: quick-setup create-namespace deploy-postgres deploy-keycloak setup-hosts
+full-demo: quick-setup create-namespace deploy-postgres deploy-crossplane-manifests deploy-keycloak setup-hosts
 	@echo "Full demo environment ready!"
 
 # Presentation ready
@@ -403,4 +420,59 @@ setup-helm-rbac:
 # Update RBAC for new Helm provider service accounts
 update-helm-rbac:
 	@echo "Updating RBAC for Helm provider service accounts..."
-	@./scripts/update-helm-rbac.sh 
+	@./scripts/update-helm-rbac.sh
+
+# Deploy Crossplane infrastructure manifests
+deploy-crossplane-manifests:
+	@echo "Deploying Crossplane infrastructure manifests..."
+	@if [ -d ".kubernetes/code" ]; then \
+		echo "Found Crossplane manifests in .kubernetes/code/"; \
+		kubectl apply -f .kubernetes/code/; \
+		echo "Crossplane manifests deployed successfully!"; \
+	else \
+		echo "No .kubernetes/code/ directory found. Creating it..."; \
+		mkdir -p .kubernetes/code; \
+		echo "Created .kubernetes/code/ directory. Add your Crossplane manifests here."; \
+	fi
+	@echo "Applying Keycloak ProviderConfig..."
+	@kubectl apply -f .kubernetes/code/keycloak-providerconfig.yaml
+
+# Documentation:
+# kind-create: Deletes and recreates the Kind cluster with 4 CPUs and 8GB RAM.
+# kind-recreate: Same as kind-create, for convenience.
+
+.PHONY: kind-delete
+kind-delete:
+	kind delete cluster --name keycloak-demo
+
+.PHONY: kind-create
+kind-create: kind-delete
+	kind create cluster --name keycloak-demo --config .kubernetes/cluster-setup/kind-config.yaml
+	@echo "Waiting for Kind node container to be ready..."
+	sleep 5
+	docker update --cpus=4 --memory=8g keycloak-demo-control-plane
+	@echo "Kind cluster created with 4 CPUs and 8GB RAM."
+
+.PHONY: kind-recreate
+kind-recreate: kind-delete kind-create
+	@echo "Kind cluster recreated with 4 CPUs and 8GB RAM."
+
+.PHONY: kind-delete-simple
+kind-delete-simple:
+	kind delete cluster --name keycloak-demo
+
+.PHONY: kind-create-simple
+kind-create-simple: kind-delete-simple
+	kind create cluster --name keycloak-demo --config .kubernetes/cluster-setup/kind-config-simple.yaml
+	@echo "Waiting for Kind node container to be ready..."
+	sleep 5
+	docker update --cpus=4 --memory=8g keycloak-demo-control-plane
+	@echo "Kind cluster (simple config) created with 4 CPUs and 8GB RAM."
+
+.PHONY: kind-recreate-simple
+kind-recreate-simple: kind-delete-simple kind-create-simple
+	@echo "Kind cluster (simple config) recreated with 4 CPUs and 8GB RAM."
+
+# Documentation:
+# kind-create-simple: Deletes and recreates the Kind cluster with kind-config-simple.yaml, 4 CPUs, 8GB RAM.
+# kind-recreate-simple: Same as kind-create-simple, for convenience. 
