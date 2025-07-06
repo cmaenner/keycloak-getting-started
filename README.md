@@ -219,12 +219,14 @@ kubectl apply -k .kubernetes/base
 ## 🌐 Access Points
 
 ### Keycloak
-- **URL**: http://keycloak.local:8080
-- **Admin Console**: http://keycloak.local:8080/admin
+
+- **URL**: [http://keycloak.local:8443](https://keycloak.local:8443/)
+- **Admin Console**: [https://keycloak.local:8443/admin/master/console](https://keycloak.local:8443/admin/master/console)
 - **Username**: admin
 - **Password**: admin
 
 ### Docusaurus
+
 - **Development**: http://localhost:3000
 - **Production**: https://yourusername.github.io/keycloak-presentation
 

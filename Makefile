@@ -1,12 +1,12 @@
-# Keycloak Development with Kind, Crossplane & Docusaurus
+# Keycloak Development with Kind, Crossplane
 # Makefile for automation and deployment
 
-.PHONY: help install-tools create-cluster delete-cluster cluster-info install-ingress install-crossplane configure-crossplane uninstall-crossplane test-crossplane create-namespace deploy-postgres deploy-keycloak setup-hosts port-forward reset-keycloak status logs describe-keycloak troubleshoot versions init-docusaurus docusaurus-dev docusaurus-build docusaurus-serve setup-github-pages cleanup-keycloak cleanup-all quick-setup full-demo presentation-ready test-keycloak check-runtime setup-helm-rbac update-helm-rbac deploy-crossplane-manifests kind-delete kind-create kind-recreate kind-delete-simple kind-create-simple kind-recreate-simple install-cert-manager
+.PHONY: help install-tools create-cluster delete-cluster cluster-info install-ingress install-crossplane configure-crossplane uninstall-crossplane test-crossplane create-namespace deploy-postgres deploy-keycloak setup-hosts port-forward reset-keycloak status logs describe-keycloak troubleshoot versions cleanup-keycloak cleanup-all quick-setup full-demo presentation-ready test-keycloak check-runtime setup-helm-rbac update-helm-rbac deploy-crossplane-manifests kind-delete kind-create kind-recreate kind-delete-simple kind-create-simple kind-recreate-simple install-cert-manager
 
 # Default target
 help:
-	@echo "Keycloak Development with Kind, Crossplane & Docusaurus"
-	@echo "=================================================="
+	@echo "Keycloak Development with Kind, Crossplane"
+	@echo "=========================================="
 	@echo ""
 	@echo "Available commands:"
 	@echo "  install-tools          - Install required tools (Docker, Kind, kubectl, Helm, Node.js)"
@@ -29,11 +29,7 @@ help:
 	@echo "  describe-keycloak      - Describe Keycloak release"
 	@echo "  troubleshoot           - Run troubleshooting checks"
 	@echo "  versions               - Show tool versions"
-	@echo "  init-docusaurus        - Initialize Docusaurus project"
-	@echo "  docusaurus-dev         - Start development server"
-	@echo "  docusaurus-build       - Build for production"
-	@echo "  docusaurus-serve       - Serve production build"
-	@echo "  setup-github-pages     - Setup GitHub Pages workflow"
+
 	@echo "  cleanup-keycloak       - Remove Keycloak resources"
 	@echo "  cleanup-configs        - Remove generated config files"
 	@echo "  cleanup-all            - Complete cleanup"
@@ -303,54 +299,7 @@ versions:
 		echo "Not installed"; \
 	fi
 
-# Initialize Docusaurus
-init-docusaurus:
-	@echo "Initializing Docusaurus project..."
-	@npx create-docusaurus@latest docusaurus classic --yes
-	@echo "Docusaurus initialized successfully!"
 
-# Start Docusaurus development server
-docusaurus-dev:
-	@echo "Starting Docusaurus development server..."
-	@cd docusaurus && npm start
-
-# Build Docusaurus for production
-docusaurus-build:
-	@echo "Building Docusaurus for production..."
-	@cd docusaurus && npm run build
-
-# Serve Docusaurus production build
-docusaurus-serve:
-	@echo "Serving Docusaurus production build..."
-	@cd docusaurus && npm run serve
-
-# Setup GitHub Pages workflow
-setup-github-pages:
-	@echo "Setting up GitHub Pages workflow..."
-	@mkdir -p .github/workflows
-	@echo "name: Deploy to GitHub Pages" > .github/workflows/deploy.yml
-	@echo "on:" >> .github/workflows/deploy.yml
-	@echo "  push:" >> .github/workflows/deploy.yml
-	@echo "    branches: [ main ]" >> .github/workflows/deploy.yml
-	@echo "jobs:" >> .github/workflows/deploy.yml
-	@echo "  build-and-deploy:" >> .github/workflows/deploy.yml
-	@echo "    runs-on: ubuntu-latest" >> .github/workflows/deploy.yml
-	@echo "    steps:" >> .github/workflows/deploy.yml
-	@echo "    - uses: actions/checkout@v3" >> .github/workflows/deploy.yml
-	@echo "    - name: Setup Node.js" >> .github/workflows/deploy.yml
-	@echo "      uses: actions/setup-node@v3" >> .github/workflows/deploy.yml
-	@echo "      with:" >> .github/workflows/deploy.yml
-	@echo "        node-version: '18'" >> .github/workflows/deploy.yml
-	@echo "    - name: Install dependencies" >> .github/workflows/deploy.yml
-	@echo "      run: cd docusaurus && npm install" >> .github/workflows/deploy.yml
-	@echo "    - name: Build" >> .github/workflows/deploy.yml
-	@echo "      run: cd docusaurus && npm run build" >> .github/workflows/deploy.yml
-	@echo "    - name: Deploy to GitHub Pages" >> .github/workflows/deploy.yml
-	@echo "      uses: peaceiris/actions-gh-pages@v3" >> .github/workflows/deploy.yml
-	@echo "      with:" >> .github/workflows/deploy.yml
-	@echo "        github_token: $${{ secrets.GITHUB_TOKEN }}" >> .github/workflows/deploy.yml
-	@echo "        publish_dir: ./docusaurus/build" >> .github/workflows/deploy.yml
-	@echo "GitHub Pages workflow created successfully!"
 
 # Cleanup Keycloak resources
 cleanup-keycloak:
@@ -377,10 +326,9 @@ full-demo: quick-setup create-namespace install-certificates deploy-postgres dep
 	@echo "Full demo environment ready!"
 
 # Presentation ready
-presentation-ready: full-demo init-docusaurus
+presentation-ready: full-demo
 	@echo "Everything is ready for presentation!"
 	@echo "Keycloak: http://$(KEYCLOAK_URL)"
-	@echo "Docusaurus: http://localhost:3000"
 
 # Test Keycloak accessibility
 test-keycloak:

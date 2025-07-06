@@ -42,20 +42,6 @@ spec:
           value: "https://keycloak.local:8443"
         - name: KC_HTTP_RELATIVE_PATH
           value: "/"
-      ingress:
-        enabled: false
-        ingressClassName: "nginx"
-        hostname: keycloak.local
-        path: /
-        pathType: Prefix
-        annotations:
-          cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-        tls: true
-        extraTls:
-          - hosts:
-              - keycloak.local
-            secretName: keycloak-tls-secret
       resources:
         requests:
           memory: "512Mi"
