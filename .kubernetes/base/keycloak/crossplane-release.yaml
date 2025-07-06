@@ -24,32 +24,38 @@ spec:
         user: keycloak
         password: password
         database: keycloak
+      service:
+        type: ClusterIP
+        ports:
+          http: 8080
+      proxy: edge
+      image:
+        tag: 26-debian-12
       extraEnvVars:
+        - name: KC_PROXY_HEADERS
+          value: "xforwarded"
         - name: KC_HTTP_ENABLED
           value: "true"
         - name: KC_HOSTNAME_STRICT
           value: "false"
-        - name: KC_HTTPS_CERTIFICATE_FILE
-          value: "/certs/tls.crt"
-        - name: KC_HTTPS_CERTIFICATE_KEY_FILE
-          value: "/certs/tls.key"
-      production: false
-      service:
-        type: NodePort
-        ports:
-          http: 8080
-          https: 8443
-      extraVolumeMounts:
-        - name: keycloak-tls
-          mountPath: /certs
-          readOnly: true
-      extraVolumes:
-        - name: keycloak-tls
-          secret:
+        - name: KC_HOSTNAME
+          value: "https://keycloak.local:8443"
+        - name: KC_HTTP_RELATIVE_PATH
+          value: "/"
+      ingress:
+        enabled: false
+        ingressClassName: "nginx"
+        hostname: keycloak.local
+        path: /
+        pathType: Prefix
+        annotations:
+          cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+        tls: true
+        extraTls:
+          - hosts:
+              - keycloak.local
             secretName: keycloak-tls-secret
-      containerPorts:
-        http: 8080
-        https: 8443
       resources:
         requests:
           memory: "512Mi"
@@ -71,9 +77,5 @@ spec:
         timeoutSeconds: 1
         failureThreshold: 3
         successThreshold: 1
-      metrics:
-        enabled: true
-        serviceMonitor:
-          enabled: false
   providerConfigRef:
     name: default

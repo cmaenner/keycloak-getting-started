@@ -1,7 +1,7 @@
 # Keycloak Development with Kind, Crossplane & Docusaurus
 # Makefile for automation and deployment
 
-.PHONY: help install-tools create-configs create-cluster create-cluster-simple delete-cluster cluster-info install-ingress install-crossplane configure-crossplane uninstall-crossplane test-crossplane create-namespace deploy-postgres deploy-keycloak setup-hosts port-forward reset-keycloak status logs describe-keycloak troubleshoot versions init-docusaurus docusaurus-dev docusaurus-build docusaurus-serve setup-github-pages cleanup-keycloak cleanup-configs cleanup-all quick-setup full-demo presentation-ready test-keycloak check-runtime setup-helm-rbac update-helm-rbac deploy-crossplane-manifests kind-delete kind-create kind-recreate kind-delete-simple kind-create-simple kind-recreate-simple
+.PHONY: help install-tools create-cluster delete-cluster cluster-info install-ingress install-crossplane configure-crossplane uninstall-crossplane test-crossplane create-namespace deploy-postgres deploy-keycloak setup-hosts port-forward reset-keycloak status logs describe-keycloak troubleshoot versions init-docusaurus docusaurus-dev docusaurus-build docusaurus-serve setup-github-pages cleanup-keycloak cleanup-all quick-setup full-demo presentation-ready test-keycloak check-runtime setup-helm-rbac update-helm-rbac deploy-crossplane-manifests kind-delete kind-create kind-recreate kind-delete-simple kind-create-simple kind-recreate-simple install-cert-manager
 
 # Default target
 help:
@@ -10,9 +10,7 @@ help:
 	@echo ""
 	@echo "Available commands:"
 	@echo "  install-tools          - Install required tools (Docker, Kind, kubectl, Helm, Node.js)"
-	@echo "  create-configs         - Create configuration files"
 	@echo "  create-cluster         - Create Kind cluster"
-	@echo "  create-cluster-simple  - Create simple Kind cluster (single node)"
 	@echo "  delete-cluster         - Delete Kind cluster"
 	@echo "  cluster-info           - Show cluster information"
 	@echo "  install-ingress        - Install NGINX Ingress Controller"
@@ -53,16 +51,17 @@ help:
 	@echo "  kind-delete-simple     - Delete simple Kind cluster"
 	@echo "  kind-create-simple     - Create simple Kind cluster with 4 CPUs and 8GB RAM"
 	@echo "  kind-recreate-simple    - Recreate simple Kind cluster with 4 CPUs and 8GB RAM"
+	@echo "  install-cert-manager   - Install cert-manager via Helm and wait for pods to be ready"
 
 # Variables
 CLUSTER_NAME := keycloak-demo
 NAMESPACE := keycloak
-KEYCLOAK_URL := keycloak.local:8080
+KEYCLOAK_URL := keycloak.local:8443
 
 # Install required tools
 install-tools:
 	@echo "Installing required tools..."
-	@echo "Checking Docker or Rancher Desktop..."
+	@echo "Checking Docker Desktop..."
 	@if which docker > /dev/null; then \
 		echo "Docker found: $(shell docker --version)"; \
 	else \
@@ -82,21 +81,11 @@ install-tools:
 	@which npm > /dev/null || (echo "npm not found. Please install npm first." && exit 1)
 	@echo "All tools are ready!"
 
-# Create configuration files
-create-configs:
-	@echo "Configuration files are already in .kubernetes/ directory"
-
 # Create Kind cluster
 create-cluster:
 	@echo "Creating Kind cluster: $(CLUSTER_NAME)"
 	@kind create cluster --name $(CLUSTER_NAME) --config .kubernetes/cluster-setup/kind-config.yaml
 	@echo "Cluster created successfully!"
-
-# Create simple Kind cluster (single node)
-create-cluster-simple:
-	@echo "Creating simple Kind cluster: $(CLUSTER_NAME)"
-	@kind create cluster --name $(CLUSTER_NAME) --config .kubernetes/cluster-setup/kind-config-simple.yaml
-	@echo "Simple cluster created successfully!"
 
 # Delete Kind cluster
 delete-cluster:
@@ -118,7 +107,7 @@ cluster-info:
 # Install NGINX Ingress Controller
 install-ingress:
 	@echo "Installing NGINX Ingress Controller..."
-	@kubectl apply -k .kubernetes/cluster-setup/ingress-nginx/
+	@kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
 	@echo "Waiting for ingress controller to be ready..."
 	@kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=300s || (echo "Waiting for pod to be created..." && sleep 10 && kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=300s)
 	@echo "Ingress controller installed successfully!"
@@ -175,6 +164,12 @@ create-namespace:
 	@echo "Creating namespace: $(NAMESPACE)"
 	@kubectl apply -f .kubernetes/base/namespace.yaml
 	@echo "Namespace created successfully!"
+
+# Install certificates
+install-certificates:
+	@echo "Installing certificates..."
+	@kubectl apply -f .kubernetes/base/cert-manager/certificate.yaml
+	@echo "Certificates installed successfully!"
 
 # Deploy PostgreSQL
 deploy-postgres:
@@ -365,21 +360,20 @@ cleanup-keycloak:
 	@kubectl delete namespace $(NAMESPACE) 2>/dev/null || echo "Namespace not found"
 	@echo "Keycloak cleanup completed!"
 
-# Cleanup configs
-cleanup-configs:
-	@echo "Cleaning up configuration files..."
-	@echo "Configuration files in .kubernetes/ are preserved"
-
 # Complete cleanup
-cleanup-all: cleanup-keycloak delete-cluster cleanup-configs
+cleanup-all: cleanup-keycloak delete-cluster
 	@echo "Complete cleanup finished!"
 
+.PHONY: create-cluster-issuer
+create-cluster-issuer:
+	@kubectl apply -f .kubernetes/base/cert-manager/cluster-issuer.yaml
+
 # Quick setup
-quick-setup: create-cluster-simple install-ingress install-crossplane configure-crossplane
+quick-setup: create-cluster install-ingress install-cert-manager install-crossplane configure-crossplane
 	@echo "Quick setup completed!"
 
 # Full demo
-full-demo: quick-setup create-namespace deploy-postgres deploy-crossplane-manifests deploy-keycloak setup-hosts
+full-demo: quick-setup create-namespace install-certificates deploy-postgres deploy-crossplane-manifests deploy-keycloak setup-hosts
 	@echo "Full demo environment ready!"
 
 # Presentation ready
@@ -434,12 +428,6 @@ deploy-crossplane-manifests:
 		mkdir -p .kubernetes/code; \
 		echo "Created .kubernetes/code/ directory. Add your Crossplane manifests here."; \
 	fi
-	@echo "Applying Keycloak ProviderConfig..."
-	@kubectl apply -f .kubernetes/code/keycloak-providerconfig.yaml
-
-# Documentation:
-# kind-create: Deletes and recreates the Kind cluster with 4 CPUs and 8GB RAM.
-# kind-recreate: Same as kind-create, for convenience.
 
 .PHONY: kind-delete
 kind-delete:
@@ -473,6 +461,21 @@ kind-create-simple: kind-delete-simple
 kind-recreate-simple: kind-delete-simple kind-create-simple
 	@echo "Kind cluster (simple config) recreated with 4 CPUs and 8GB RAM."
 
-# Documentation:
-# kind-create-simple: Deletes and recreates the Kind cluster with kind-config-simple.yaml, 4 CPUs, 8GB RAM.
-# kind-recreate-simple: Same as kind-create-simple, for convenience. 
+.PHONY: install-cert-manager
+install-cert-manager:
+	@echo "Installing cert-manager via Helm..."
+	@echo "Step 1: Installing cert-manager core components..."
+	kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
+	helm repo add jetstack https://charts.jetstack.io || true
+	helm repo update
+	helm upgrade --install cert-manager jetstack/cert-manager \
+		--namespace cert-manager \
+		--version v1.18.2 \
+		--set installCRDs=true
+	@echo "Waiting for cert-manager pods to be ready..."
+	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=cert-manager -n cert-manager --timeout=300s
+	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=cert-manager-webhook -n cert-manager --timeout=300s || true
+	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=cert-manager-cainjector -n cert-manager --timeout=300s || true
+	@echo "Step 2: Installing cert-manager cluster issuers..."
+	kubectl apply -f .kubernetes/base/cert-manager/cluster-issuer.yaml
+	@echo "cert-manager installed successfully!" 

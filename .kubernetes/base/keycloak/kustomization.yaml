@@ -8,6 +8,7 @@ metadata:
 resources:
   - crossplane-release.yaml
   - ingress.yaml
+  - certificate.yaml
 
 labels:
   - includeSelectors: true

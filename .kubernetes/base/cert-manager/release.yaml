@@ -1,0 +1,21 @@
+---
+# Install cert-manager via Helm using Crossplane
+apiVersion: helm.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  forProvider:
+    chart:
+      name: cert-manager
+      repository: https://charts.jetstack.io
+      version: "v1.18.2"
+    namespace: cert-manager
+    values:
+      installCRDs: true
+      global:
+        leaderElection:
+          namespace: cert-manager
+  providerConfigRef:
+    name: default

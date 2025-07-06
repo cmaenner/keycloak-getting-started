@@ -1,5 +1,5 @@
 ---
-# .kubernetes/cluster-setup/kind-config.yaml
+# .kubernetes/cluster-setup/kind-config-simple.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: keycloak-demo
@@ -18,15 +18,6 @@ nodes:
       - containerPort: 443
         hostPort: 8443
         protocol: TCP
-      - containerPort: 8080
-        hostPort: 8080
-        protocol: TCP
       - containerPort: 9000
         hostPort: 9000
         protocol: TCP
-  - role: worker
-    labels:
-      node-role.kubernetes.io/worker: ""
-  - role: worker
-    labels:
-      node-role.kubernetes.io/worker: ""
