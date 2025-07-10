@@ -1,0 +1,34 @@
+---
+# Create the staff group roles
+apiVersion: group.keycloak.crossplane.io/v1alpha1
+kind: Roles
+metadata:
+  name: group-roles-staff
+  annotations:
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    groupIdRef:
+      name: staff
+      policy:
+        resolution: Required # a realm with metadata.name==master must exist
+        resolve: Always # make sure it's always using the freshest of crossplane.io/external-name
+    realmIdRef:
+      name: boardwalk-bytes
+      policy:
+        resolution: Required # a realm with metadata.name==master must exist
+        resolve: Always # make sure it's always using the freshest of crossplane.io/external-name
+    roleIdsRefs:
+      - name: boardwalk-bytes-create-client
+        policy:
+          resolution: Required
+          resolve: Always
+      - name: boardwalk-bytes-manage-account
+        policy:
+          resolution: Required
+          resolve: Always
+      - name: boardwalk-bytes-view-clients
+        policy:
+          resolution: Required
+          resolve: Always
+  managementPolicies: ["*"]

@@ -1,0 +1,75 @@
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: client-account
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    clientId: account
+    name: client_account
+    enabled: true
+    import: true
+    realmId: boardwalk-bytes
+  managementPolicies: ["Observe"]
+  deletionPolicy: Orphan
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: client-broker
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    clientId: broker
+    name: client_broker
+    enabled: true
+    import: true
+    realmId: boardwalk-bytes
+  managementPolicies: ["Observe"]
+  deletionPolicy: Orphan
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: client-realm-management
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    clientId: realm-management
+    name: client_realm-management
+    enabled: true
+    import: true
+    realmId: boardwalk-bytes
+  managementPolicies: ["Observe"]
+  deletionPolicy: Orphan
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: client-account-console
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    clientId: account-console
+    name: client_account-console
+    enabled: true
+    import: true
+    realmId: boardwalk-bytes
+  managementPolicies: ["Observe"]
+  deletionPolicy: Orphan
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: client-security-admin-console
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    clientId: security-admin-console
+    name: client_security-admin-console
+    enabled: true
+    import: true
+    realmId: boardwalk-bytes
+  managementPolicies: ["Observe"]
+  deletionPolicy: Orphan

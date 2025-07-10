@@ -1,0 +1,40 @@
+# Associate staff with the security-admin-console client
+---
+apiVersion: role.keycloak.crossplane.io/v1alpha1
+kind: Role
+metadata:
+  name: security-admin-console-staff
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "10"
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    clientIdRef:
+      name: client-security-admin-console
+      policy:
+        resolve: "Always"
+        resolution: "Required"
+    description: "Role for staff to manage security admin console"
+    name: staff
+    realmId: boardwalk-bytes
+---
+# Associate staff with the account-console client
+apiVersion: role.keycloak.crossplane.io/v1alpha1
+kind: Role
+metadata:
+  name: client-account-console-staff
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "10"
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    clientIdRef:
+      name: client-account-console
+      policy:
+        resolve: "Always"
+        resolution: "Required"
+    description: "Role for staff to manage account console"
+    name: staff
+    realmId: boardwalk-bytes

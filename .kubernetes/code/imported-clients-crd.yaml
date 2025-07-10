@@ -1,0 +1,108 @@
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: ximportedclients.clients.keycloak.org
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  group: clients.keycloak.org
+  names:
+    kind: XImportedClient
+    plural: ximportedclients
+  claimNames:
+    kind: ImportedClient
+    plural: importedclients
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                realm:
+                  type: string
+                  description: The realm ID to import the clients into.
+                clients:
+                  type: array
+                  description: The clients to import.
+                  default: []
+                  items:
+                    type: object
+                    properties:
+                      accessType:
+                        type: string
+                        description: The access type of the client.
+                      clientId:
+                        type: string
+                        description: (Optional) The client ID to associate with the client.
+                      name:
+                        type: string
+                        description: The name of the client.
+                    required:
+                      - accessType
+                      - clientId
+                      - name
+              required:
+                - realm
+                - clients
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: importedclient.clients.keycloak.org
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    crossplane.io/xrd: ximportedclients.clients.keycloak.org
+spec:
+  compositeTypeRef:
+    apiVersion: clients.keycloak.org/v1alpha1
+    kind: XImportedClient
+  mode: Pipeline
+  pipeline:
+    - step: import-clients
+      functionRef:
+        name: kcl-function
+      input:
+        apiVersion: krm.kcl.dev/v1alpha1
+        kind: KCLRun
+        metadata:
+          name: import-clients
+        spec:
+          target: Resources
+          source: |
+            oxr = option("params")?.oxr
+
+            items = [{
+              apiVersion: "openidclient.keycloak.crossplane.io/v1alpha1"
+              kind: "Client"
+              metadata: {
+                name: "{}-{}".format(oxr?.spec?.realm, client.clientId)
+              }
+              spec: {
+                managementPolicies: ["Observe"]
+                deletionPolicy: "Orphan"
+                forProvider: {
+                  accessType: client.accessType
+                  clientId: client.clientId
+                  enabled: True
+                  import: True
+                  name: client.name
+                  realmId: oxr?.spec?.realm
+                }
+              }
+            } for client in oxr?.spec?.clients or []]
+
+            {
+              "items": [*items]
+            }
+    - step: function-auto-ready
+      functionRef:
+        name: function-auto-ready

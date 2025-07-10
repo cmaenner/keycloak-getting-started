@@ -1,0 +1,67 @@
+---
+# Associate staff group with the account-console client
+apiVersion: identityprovider.keycloak.crossplane.io/v1alpha1
+kind: IdentityProviderMapper
+metadata:
+  name: account-console-staff
+spec:
+  forProvider:
+    identityProviderAlias: "microsoft-entra-tenant"
+    # How I got the identityProviderMapper:
+    # https://github.com/keycloak/keycloak/blob/main/services/src/main/java/org/keycloak/broker/oidc/mappers/ClaimToRoleMapper.java#L68C47-L68C67
+    identityProviderMapper: "oidc-role-idp-mapper"
+    extraConfig:
+      syncMode: "IMPORT"
+      claim: "groups"
+      claim.value: "bd72c9d9-351c-44db-a038-fb91ac681ad5"
+      role: "account-console.staff"
+    name: account-console-staff
+    realmRef:
+      name: boardwalk-bytes
+      policy:
+        resolve: "Always"
+        resolution: "Required"
+---
+# Associate staff group with the security-admin-console client
+apiVersion: identityprovider.keycloak.crossplane.io/v1alpha1
+kind: IdentityProviderMapper
+metadata:
+  name: security-admin-console-staff
+spec:
+  forProvider:
+    identityProviderAlias: "microsoft-entra-tenant"
+    identityProviderMapper: "oidc-role-idp-mapper"
+    extraConfig:
+      syncMode: "IMPORT"
+      claim: "groups"
+      claim.value: "bd72c9d9-351c-44db-a038-fb91ac681ad5"
+      role: "security-admin-console.staff"
+    name: security-admin-console-staff
+    realmRef:
+      name: boardwalk-bytes
+      policy:
+        resolve: "Always"
+        resolution: "Required"
+---
+# Associate staff group with Entra SSO group
+apiVersion: identityprovider.keycloak.crossplane.io/v1alpha1
+kind: IdentityProviderMapper
+metadata:
+  name: group-mapper-staff
+spec:
+  forProvider:
+    identityProviderAlias: "microsoft-entra-tenant"
+    identityProviderMapper: "oidc-advanced-group-idp-mapper"
+    extraConfig:
+      syncMode: "IMPORT"
+      group: "/staff"
+      claims: "[{\"key\":\"groups\",\"value\":\"bd72c9d9-351c-44db-a038-fb91ac681ad5\"}]"
+      add.claims: "true"
+      claim.0.key: "groups"
+      claim.0.value: "bd72c9d9-351c-44db-a038-fb91ac681ad5"
+    name: group-mapper-staff
+    realmRef:
+      name: boardwalk-bytes
+      policy:
+        resolve: "Always"
+        resolution: "Required"

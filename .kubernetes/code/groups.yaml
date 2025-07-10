@@ -1,0 +1,19 @@
+---
+# Create the staff group
+apiVersion: group.keycloak.crossplane.io/v1alpha1
+kind: Group
+metadata:
+  name: staff
+  annotations:
+    crossplane.io/group-name: staff
+    keycloak.org/realm: boardwalk-bytes
+    keycloak.org/role: staff
+spec:
+  forProvider:
+    name: staff
+    realmIdRef:
+      name: boardwalk-bytes
+      policy:
+        resolution: Required
+        resolve: Always
+  managementPolicies: ["*"]

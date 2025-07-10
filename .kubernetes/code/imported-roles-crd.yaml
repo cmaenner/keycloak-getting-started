@@ -1,0 +1,128 @@
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: ximportedroles.roles.keycloak.org
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  group: roles.keycloak.org
+  names:
+    kind: XImportedRole
+    plural: ximportedroles
+  claimNames:
+    kind: ImportedRole
+    plural: importedroles
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                realm:
+                  type: string
+                  description: The realm ID to import the roles into.
+                roles:
+                  type: array
+                  description: The roles to import.
+                  default: []
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the role.
+                      description:
+                        type: string
+                        description: The description of the role.
+                      clientIdRef:
+                        type: string
+                        description: (Optional) The client ID to associate with the role.
+                      import:
+                        type: boolean
+                        description: (Optional) Whether to import the role.
+                    required:
+                      - name
+                      - description
+              required:
+                - realm
+                - roles
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: importedrole.roles.keycloak.org
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    crossplane.io/xrd: ximportedroles.roles.keycloak.org
+spec:
+  compositeTypeRef:
+    apiVersion: roles.keycloak.org/v1alpha1
+    kind: XImportedRole
+  mode: Pipeline
+  pipeline:
+    - step: import-roles
+      functionRef:
+        name: kcl-function
+      input:
+        apiVersion: krm.kcl.dev/v1alpha1
+        kind: KCLRun
+        metadata:
+          name: import-roles
+        spec:
+          target: Resources
+          source: |
+            oxr = option("params")?.oxr
+
+            items = [{
+              apiVersion: "role.keycloak.crossplane.io/v1alpha1"
+              kind: "Role"
+              metadata: {
+                name: "{}-{}".format(oxr?.spec?.realm, role.name)
+                annotations: {
+                  "keycloak.org/realm": oxr?.spec?.realm
+                  "keycloak.org/role": role.name
+                }
+              }
+              spec: {
+                # DEVNOTE: These are automatically created by Keycloak, Observe+Orphan
+                managementPolicies: ["Observe", "Create"]
+                deletionPolicy: "Orphan"
+                forProvider: {
+                  name: role.name
+                  description: role.description
+                  import: True
+                  realmIdRef: {
+                    name: oxr?.spec?.realm
+                    policy: {
+                      resolve: "Always"
+                      resolution: "Required"
+                    }
+                  }
+
+                  if role.clientIdRef:
+                    clientIdRef: {
+                      name: role.clientIdRef
+                      policy: {
+                        resolve: "Always"
+                        resolution: "Required"
+                      }
+                    }
+                }
+              }
+            } for role in oxr?.spec?.roles or []]
+
+            {
+              "items": [*items]
+            }
+    - step: function-auto-ready
+      functionRef:
+        name: function-auto-ready

@@ -1,0 +1,27 @@
+apiVersion: oidc.keycloak.crossplane.io/v1alpha1
+kind: IdentityProvider
+metadata:
+  name: idp
+spec:
+  forProvider:
+    alias: "microsoft-entra-tenant"
+    authorizationUrl: "https://login.microsoftonline.com/5e5477b0-a403-4723-acc4-56daaf63e7fb/oauth2/v2.0/authorize"
+    clientId: accba703-0dae-487c-8e0b-c38d505bc7ed
+    clientSecretSecretRef:
+      key: idp_client_secret
+      name: keycloak-client-secret
+      namespace: keycloak
+    defaultScopes: "openid profile"
+    displayName: "Microsoft Entra"
+    enabled: true
+    issuer: "https://login.microsoftonline.com/5e5477b0-a403-4723-acc4-56daaf63e7fb/v2.0"
+    jwksUrl: "https://login.microsoftonline.com/5e5477b0-a403-4723-acc4-56daaf63e7fb/discovery/v2.0/keys"
+    logoutUrl: "https://login.microsoftonline.com/5e5477b0-a403-4723-acc4-56daaf63e7fb/oauth2/v2.0/logout"
+    realm: boardwalk-bytes
+    syncMode: IMPORT
+    trustEmail: true
+    tokenUrl: "https://login.microsoftonline.com/5e5477b0-a403-4723-acc4-56daaf63e7fb/oauth2/v2.0/token"
+    userInfoUrl: "https://graph.microsoft.com/oidc/userinfo"
+    validateSignature: true
+    storeToken: true
+    addReadTokenRoleOnCreate: true

@@ -1,0 +1,68 @@
+---
+apiVersion: roles.keycloak.org/v1alpha1
+kind: ImportedRole
+metadata:
+  name: imported-roles
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "10"
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  realm: boardwalk-bytes
+  roles:
+    # Boardwalk Bytes account roles
+    - name: delete-account
+      description: "Role for deleting account"
+      clientIdRef: client-account
+    - name: manage-account
+      description: "Role for managing account"
+      clientIdRef: client-account
+    - name: manage-account-links
+      description: "Role for managing account links"
+      clientIdRef: client-account
+    - name: manage-consent
+      description: "Role for managing consent"
+      clientIdRef: client-account
+    - name: view-applications
+      description: "Role for viewing applications"
+      clientIdRef: client-account
+    - name: view-consent
+      description: "Role for viewing consent"
+      clientIdRef: client-account
+    - name: view-groups
+      description: "Role for viewing groups"
+      clientIdRef: client-account
+    - name: view-profile
+      description: "Role for viewing profile"
+      clientIdRef: client-account
+
+    # Boardwalk Bytes broker roles
+    - name: read-token
+      description: "Role for reading token"
+      clientIdRef: client-broker
+
+    # Boardwalk Bytes realm-management roles
+    - name: create-client
+      description: "Role for creating clients"
+      clientIdRef: client-realm-management
+    - name: realm-admin
+      description: "Role for realm administration"
+      clientIdRef: client-realm-management
+    - name: manage-clients
+      description: "Role for managing clients"
+      clientIdRef: client-realm-management
+    - name: manage-users
+      description: "Role for managing users"
+      clientIdRef: client-realm-management
+    - name: query-users
+      description: "Role for querying users"
+      clientIdRef: client-realm-management
+    - name: view-clients
+      description: "Role for viewing clients"
+      clientIdRef: client-realm-management
+    - name: view-realm
+      description: "Role for viewing realm"
+      clientIdRef: client-realm-management
+    - name: view-users
+      description: "Role for viewing users"
+      clientIdRef: client-realm-management

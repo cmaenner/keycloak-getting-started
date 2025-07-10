@@ -1,0 +1,110 @@
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientScope
+metadata:
+  name: client-scope-groups
+  annotations:
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    name: groups
+    description: "Managed by Crossplane. Groups client scope"
+    includeInTokenScope: true
+    realmIdRef:
+      name: boardwalk-bytes
+  managementPolicies: ["*"]
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientScope
+metadata:
+  name: client-scope-jwt-roles
+  annotations:
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    name: roles
+    description: "Managed by Crossplane. JWT roles client scope"
+    includeInTokenScope: true
+    realmIdRef:
+      name: boardwalk-bytes
+  managementPolicies: ["*"]
+---
+apiVersion: realm.keycloak.crossplane.io/v1alpha1
+kind: OptionalClientScopes
+metadata:
+  name: client-scope-groups
+  annotations:
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    optionalScopes:
+      - address
+      - groups
+      - microprofile-jwt
+      - offline_access
+      - organization
+      - phone
+    realmIdRef:
+      name: boardwalk-bytes
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientDefaultScopes
+metadata:
+  name: client-default-scope-groups
+  annotations:
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    clientIdRef:
+      name: client-account
+    defaultScopes:
+      - acr
+      - basic
+      - email
+      - profile
+      - groups
+    realmIdRef:
+      name: boardwalk-bytes
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientDefaultScopes
+metadata:
+  name: client-default-scope-groups
+  annotations:
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    clientIdRef:
+      name: client-account-console
+    defaultScopes:
+      - acr
+      - basic
+      - email
+      - profile
+      - groups
+      - roles
+      - web-origins
+    realmIdRef:
+      name: boardwalk-bytes
+---
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientDefaultScopes
+metadata:
+  name: client-default-scope-jwt-roles
+  annotations:
+    keycloak.org/realm: boardwalk-bytes
+spec:
+  forProvider:
+    clientIdRef:
+      name: client-security-admin-console
+    defaultScopes:
+      - acr
+      - basic
+      - email
+      - groups
+      - jwt-roles
+      - profile
+      - roles
+      - web-origins
+    realmIdRef:
+      name: boardwalk-bytes
