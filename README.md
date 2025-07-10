@@ -92,35 +92,7 @@ Or install manually:
 make presentation-ready
 ```
 
-### 2. Step-by-Step Setup
-```bash
-# Install prerequisites
-make install-tools
-
-# Create configuration files
-make create-configs
-
-# Setup Kubernetes cluster
-make create-cluster
-
-# Install ingress controller
-make install-ingress
-
-# Install and configure Crossplane
-make install-crossplane
-make configure-crossplane
-
-# Deploy Keycloak
-make deploy-keycloak
-
-# Setup local access
-make setup-hosts
-
-# Initialize Docusaurus
-make init-docusaurus
-```
-
-### 3. Verification
+### 2. Verification
 ```bash
 # Check all components
 make status
@@ -169,15 +141,6 @@ make troubleshoot          # Run troubleshooting checks
 make versions              # Show tool versions
 ```
 
-### Docusaurus Operations
-```bash
-make init-docusaurus       # Initialize Docusaurus project
-make docusaurus-dev        # Start development server
-make docusaurus-build      # Build for production
-make docusaurus-serve      # Serve production build
-make setup-github-pages    # Setup GitHub Pages workflow
-```
-
 ### Cleanup
 ```bash
 make cleanup-keycloak      # Remove Keycloak resources
@@ -220,42 +183,14 @@ kubectl apply -k .kubernetes/base
 
 ### Keycloak
 
-- **URL**: [http://keycloak.local:8443](https://keycloak.local:8443/)
+- **URL**: [https://keycloak.local:8443](https://keycloak.local:8443/)
 - **Admin Console**: [https://keycloak.local:8443/admin/master/console](https://keycloak.local:8443/admin/master/console)
 - **Username**: admin
 - **Password**: admin
 
-### Docusaurus
-
-- **Development**: http://localhost:3000
-- **Production**: https://yourusername.github.io/keycloak-presentation
-
 ## 📊 Presentation Structure (30 minutes)
 
-### 1. Introduction (5 minutes)
-- Problem: Traditional identity management challenges
-- Solution: Modern Kubernetes-native approach
-- Architecture overview
-
-### 2. Technology Deep Dive (10 minutes)
-- Kind for local development
-- Crossplane for infrastructure as code
-- Kustomize for configuration management
-- Keycloak deployment strategy
-
-### 3. Live Demo (10 minutes)
-- Cluster creation: `make create-cluster`
-- Crossplane setup: `make install-crossplane configure-crossplane`
-- Keycloak deployment: `make deploy-keycloak`
-- Admin console walkthrough
-
-### 4. Best Practices (3 minutes)
-- Security considerations
-- Production deployment patterns
-- Monitoring and observability
-
-### 5. Q&A (2 minutes)
-- Questions and discussion
+[https://gamma.app/docs/Bring-Your-Own-Identity-System-Boardwalk-Bytes-2025-fh76lhzu0gnqj8p](https://gamma.app/docs/Bring-Your-Own-Identity-System-Boardwalk-Bytes-2025-fh76lhzu0gnqj8p)
 
 ## 🔍 Troubleshooting
 

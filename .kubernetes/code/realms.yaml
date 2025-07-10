@@ -17,8 +17,65 @@ spec:
     rememberMe: false
     loginWithEmailAllowed: true
     duplicateEmailsAllowed: false
-    accessTokenLifespan: "5m"
-    ssoSessionIdleTimeout: "10m"
+    accessTokenLifespan: "15m"
+    ssoSessionIdleTimeout: "15m"
+    ssoSessionMaxLifespan: "30m"
+    passwordPolicy: "length(12) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1) and notUsername and forceExpiredPasswordChange(365)"
+    securityDefenses:
+      - bruteForceDetection:
+          - failureResetTimeSeconds: 43200
+            maxFailureWaitSeconds: 900
+            maxLoginFailures: 30
+            minimumQuickLoginWaitSeconds: 60
+            permanentLockout: false
+            quickLoginCheckMilliSeconds: 1000
+            waitIncrementSeconds: 60
+        headers:
+          - contentSecurityPolicy: "frame-src 'self'; frame-ancestors 'self'; object-src 'none';"
+            contentSecurityPolicyReportOnly: ""
+            strictTransportSecurity: "max-age=31536000; includeSubDomains"
+            xContentTypeOptions: nosniff
+            xFrameOptions: DENY
+            xRobotsTag: none
+            xXssProtection: "1; mode=block"
+    internationalization:
+      - defaultLocale: "en"
+        supportedLocales:
+          - "ar"
+          - "de"
+          - "en"
+          - "es"
+          - "it"
+          - "ja"
+          - "ko"
+          - "nl"
+          - "pt"
+          - "th"
+          - "zh-CN"
+          - "zh-TW"
+  providerConfigRef:
+    name: default
+---
+apiVersion: realm.keycloak.crossplane.io/v1alpha1
+kind: Realm
+metadata:
+  name: boardwalk-bytes
+  annotations:
+    crossplane.io/external-name: boardwalk-bytes
+spec:
+  deletionPolicy: Orphan
+  forProvider:
+    realm: "boardwalk-bytes"
+    enabled: true
+    displayName: "Boardwalk Bytes Realm"
+    accessCodeLifespan: "1h"
+    sslRequired: all
+    registrationAllowed: false
+    rememberMe: false
+    loginWithEmailAllowed: true
+    duplicateEmailsAllowed: false
+    accessTokenLifespan: "15m"
+    ssoSessionIdleTimeout: "15m"
     ssoSessionMaxLifespan: "30m"
     passwordPolicy: "length(12) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1) and notUsername and forceExpiredPasswordChange(365)"
     securityDefenses:

@@ -71,8 +71,6 @@ install-tools:
 	@which kubectl > /dev/null || (echo "Installing kubectl..." && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/$(uname)/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/)
 	@echo "Checking Helm..."
 	@which helm > /dev/null || (echo "Installing Helm..." && curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash)
-	@echo "Checking Node.js..."
-	@which node > /dev/null || (echo "Node.js not found. Please install Node.js 18+ first." && exit 1)
 	@echo "Checking npm..."
 	@which npm > /dev/null || (echo "npm not found. Please install npm first." && exit 1)
 	@echo "All tools are ready!"
@@ -328,7 +326,7 @@ full-demo: quick-setup create-namespace install-certificates deploy-postgres dep
 # Presentation ready
 presentation-ready: full-demo
 	@echo "Everything is ready for presentation!"
-	@echo "Keycloak: http://$(KEYCLOAK_URL)"
+	@echo "Keycloak: https://$(KEYCLOAK_URL)"
 
 # Test Keycloak accessibility
 test-keycloak:
