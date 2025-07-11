@@ -55,7 +55,7 @@ spec:
     extraConfig:
       syncMode: "IMPORT"
       group: "/staff"
-      claims: "[{\"key\":\"groups\",\"value\":\"bd72c9d9-351c-44db-a038-fb91ac681ad5\"}]"
+      claims: '[{"key":"groups","value":"bd72c9d9-351c-44db-a038-fb91ac681ad5"}]'
       add.claims: "true"
       claim.0.key: "groups"
       claim.0.value: "bd72c9d9-351c-44db-a038-fb91ac681ad5"
