@@ -1,6 +1,6 @@
-# Keycloak Development with Kind, Crossplane & Docusaurus
+# Keycloak Environment with Kind & Crossplane
 
-This project demonstrates modern identity management deployment using Kubernetes, showcasing Keycloak deployment with Crossplane for infrastructure as code and Docusaurus for documentation.
+This project demonstrates modern identity management deployment using Kubernetes, showcasing Keycloak deployment with Crossplane for infrastructure as code.
 
 ## 🏗️ Project Structure
 
@@ -29,54 +29,52 @@ keycloak-presentation/
 │       ├── kind-config.yaml
 │       ├── crossplane-config.yaml
 │       └── ingress-nginx.yaml
-├── docusaurus/              # Presentation website
-│   ├── docs/
-│   ├── src/
-│   ├── static/
-│   ├── docusaurus.config.js
-│   └── package.json
-├── Makefile                 # Automation commands
-└── README.md               # This file
+├── Makefile                  # Automation commands
+└── README.md                 # This file
 ```
 
 ## 🚀 Technologies Used
 
 ### Core Infrastructure
+
 - **[Kind](https://kind.sigs.k8s.io/)** - Kubernetes in Docker for local development
 - **[Kubernetes](https://kubernetes.io/)** - Container orchestration platform
 - **[Kustomize](https://kustomize.io/)** - Kubernetes configuration management
 - **[Helm](https://helm.sh/)** - Kubernetes package manager
 
 ### Identity Management
+
 - **[Keycloak](https://www.keycloak.org/)** - Open-source identity and access management
 - **[PostgreSQL](https://www.postgresql.org/)** - Database for Keycloak
 
 ### Infrastructure as Code
+
 - **[Crossplane](https://crossplane.io/)** - Kubernetes-native infrastructure management
 - **[Crossplane Provider Helm](https://github.com/crossplane-contrib/provider-helm)** - Helm chart deployment via Crossplane
 
 ### Networking
-- **[NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)** - Ingress controller for Kind
 
-### Documentation
-- **[Docusaurus](https://docusaurus.io/)** - Documentation website generator
-- **[GitHub Pages](https://pages.github.com/)** - Static site hosting
+- **[NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)** - Ingress controller for Kind
 
 ## 📋 Prerequisites
 
 ### System Requirements
+
 - Docker 20.10+
 - 8GB+ RAM
 - 20GB+ free disk space
 - Linux, macOS, or Windows with WSL2
 
 ### Required Tools
+
 Install all tools automatically:
+
 ```bash
 make install-tools
 ```
 
 Or install manually:
+
 - Docker
 - Kind
 - kubectl
@@ -87,12 +85,14 @@ Or install manually:
 ## 🎯 Quick Start
 
 ### 1. Complete Setup (Recommended)
+
 ```bash
 # Setup everything for presentation
 make presentation-ready
 ```
 
 ### 2. Verification
+
 ```bash
 # Check all components
 make status
@@ -107,6 +107,7 @@ make logs
 ## 🔧 Available Commands
 
 ### Cluster Management
+
 ```bash
 make create-cluster          # Create Kind cluster
 make delete-cluster          # Delete Kind cluster
@@ -115,6 +116,7 @@ make install-ingress        # Install NGINX Ingress Controller
 ```
 
 ### Crossplane Operations
+
 ```bash
 make install-crossplane      # Install Crossplane
 make configure-crossplane    # Configure Crossplane providers
@@ -123,6 +125,7 @@ make test-crossplane        # Test Crossplane resources
 ```
 
 ### Keycloak Deployment
+
 ```bash
 make create-namespace       # Create keycloak namespace
 make deploy-postgres        # Deploy PostgreSQL database
@@ -133,6 +136,7 @@ make reset-keycloak        # Reset Keycloak deployment
 ```
 
 ### Monitoring & Debugging
+
 ```bash
 make status                # Show status of all components
 make logs                  # Show Keycloak logs
@@ -142,6 +146,7 @@ make versions              # Show tool versions
 ```
 
 ### Cleanup
+
 ```bash
 make cleanup-keycloak      # Remove Keycloak resources
 make cleanup-configs       # Remove generated config files
@@ -149,6 +154,7 @@ make cleanup-all           # Complete cleanup
 ```
 
 ### Quick Commands
+
 ```bash
 make quick-setup           # Setup cluster, ingress, Crossplane
 make full-demo            # Complete demo environment
@@ -158,16 +164,20 @@ make presentation-ready    # Everything ready for presentation
 ## 🎨 Kustomize Structure
 
 ### Base Configuration
+
 Located in `.kubernetes/base/`, contains:
+
 - **namespace.yaml** - Keycloak namespace definition
 - **postgres/** - PostgreSQL deployment and service
 - **keycloak/** - Keycloak Crossplane release and ingress
 
 ### Overlays
+
 - **development/** - Development-specific configurations
 - **production/** - Production-ready configurations
 
 ### Usage
+
 ```bash
 # Apply development configuration
 kubectl apply -k .kubernetes/overlays/development
@@ -197,6 +207,7 @@ kubectl apply -k .kubernetes/base
 ### Common Issues
 
 #### Cluster Not Accessible
+
 ```bash
 # Check cluster status
 make cluster-info
@@ -209,6 +220,7 @@ kubectl config use-context kind-keycloak-demo
 ```
 
 #### Ingress Not Working
+
 ```bash
 # Check ingress controller
 kubectl get pods -n ingress-nginx
@@ -221,6 +233,7 @@ make port-forward
 ```
 
 #### Crossplane Issues
+
 ```bash
 # Check Crossplane status
 make test-crossplane
@@ -233,6 +246,7 @@ kubectl describe provider provider-helm
 ```
 
 #### Keycloak Not Starting
+
 ```bash
 # Check pod status
 kubectl get pods -n keycloak
@@ -245,6 +259,7 @@ kubectl exec -it -n keycloak deployment/postgres -- psql -U keycloak -d keycloak
 ```
 
 ### Debug Commands
+
 ```bash
 # Comprehensive troubleshooting
 make troubleshoot
@@ -259,11 +274,13 @@ kubectl get events -n keycloak --sort-by=.metadata.creationTimestamp
 ## 🔐 Security Considerations
 
 ### Development Environment
+
 - Default passwords for demo purposes
 - No TLS encryption
 - Local cluster only
 
 ### Production Recommendations
+
 - Use strong, unique passwords
 - Enable TLS with proper certificates
 - Implement network policies
@@ -273,12 +290,14 @@ kubectl get events -n keycloak --sort-by=.metadata.creationTimestamp
 ## 📚 Learning Resources
 
 ### Official Documentation
+
 - [Keycloak Documentation](https://www.keycloak.org/documentation)
 - [Crossplane Documentation](https://docs.crossplane.io/)
 - [Kind Documentation](https://kind.sigs.k8s.io/)
 - [Kustomize Documentation](https://kustomize.io/)
 
 ### Tutorials & Guides
+
 - [Kubernetes Basics](https://kubernetes.io/docs/tutorials/)
 - [Crossplane Getting Started](https://docs.crossplane.io/getting-started/)
 - [Keycloak Admin Guide](https://www.keycloak.org/docs/latest/server_admin/)
@@ -286,6 +305,7 @@ kubectl get events -n keycloak --sort-by=.metadata.creationTimestamp
 ## 🤝 Contributing
 
 ### Development Workflow
+
 1. Fork the repository
 2. Create feature branch
 3. Make changes
@@ -293,6 +313,7 @@ kubectl get events -n keycloak --sort-by=.metadata.creationTimestamp
 5. Submit pull request
 
 ### Testing Changes
+
 ```bash
 # Clean environment
 make cleanup-all
@@ -308,17 +329,10 @@ make test-keycloak
 ## 📄 License
 
 This project is for educational and demonstration purposes. Individual components are licensed under their respective licenses:
+
 - Keycloak: Apache License 2.0
 - Crossplane: Apache License 2.0
 - Kubernetes: Apache License 2.0
-- Docusaurus: MIT License
-
-## 🎉 Acknowledgments
-
-- Keycloak community for the excellent identity management solution
-- Crossplane team for infrastructure as code innovation
-- Kubernetes community for container orchestration
-- Kind maintainers for local development tools
 
 ---
 
